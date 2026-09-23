@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#204a34">
-<title>UniqueBirthdayGift · 致最爱的妈妈</title>
+<title>UniqueBirthdayGift</title>
 <link rel="icon" type="image/png" href="assets/favicon.png">
 <style>
 /* ===================== 设计变量 ===================== */
@@ -428,8 +428,8 @@ body{
   <section class="scene active" id="s0">
     <p class="eyebrow">HAPPY BIRTHDAY</p>
     <div class="cover-frame"><img src="background.png" alt="生日快乐"></div>
-    <h1 class="cover-title">To 最爱的妈妈</h1>
-    <p class="cover-sub">生日快乐</p>
+    <h1 class="cover-title" data-card="cover.to">To 最爱的妈妈</h1>
+    <p class="cover-sub" data-card="cover.sub">生日快乐</p>
     <div class="ribbon"></div>
     <div style="margin-top:26px"><button class="btn" data-go="1">拆 开 礼 物</button></div>
     <p class="hint">一份为你准备的小惊喜<br>需要一点点声音和互动 🎁</p>
@@ -441,11 +441,8 @@ body{
     <p class="cake-hint">先吹灭蜡烛吧 —— 点击烛火，<br>或者对着麦克风吹一口气</p>
 
     <div class="cake-wrap">
-      <div class="candles" id="candles">
-        <div class="candle"><span class="glow"></span><span class="smoke"></span><div class="flame" role="button" aria-label="吹灭蜡烛"></div><div class="wick"></div><div class="stick"></div></div>
-        <div class="candle"><span class="glow"></span><span class="smoke"></span><div class="flame" role="button" aria-label="吹灭蜡烛"></div><div class="wick"></div><div class="stick"></div></div>
-        <div class="candle"><span class="glow"></span><span class="smoke"></span><div class="flame" role="button" aria-label="吹灭蜡烛"></div><div class="wick"></div><div class="stick"></div></div>
-      </div>
+      <!-- 蜡烛数量由 CARD.candleCount 决定 -->
+      <div class="candles" id="candles"></div>
       <div class="layer layer-3"></div>
       <div class="layer layer-2"></div>
       <div class="layer layer-1"></div>
@@ -487,21 +484,16 @@ body{
         <img class="pocket" src="assets/envelope.png" alt="信封">
         <div class="sheet">
           <div class="letter" style="padding:18px 16px">
-            <p style="opacity:1;transform:none;font-size:13px;color:#6a4a2c">To 最爱的妈妈 ……</p>
+            <p style="opacity:1;transform:none;font-size:13px;color:#6a4a2c" data-card="letter.peek">To 最爱的妈妈 ……</p>
           </div>
         </div>
         <div class="flap"><img class="wax" src="assets/wax.png" alt="蜡封"></div>
       </div>
       <div class="letter-wrap">
         <div class="letter" id="letter">
-          <h3>To 最爱的妈妈：</h3>
-          <p>祝您生日快乐！</p>
-          <p>健康、幸福、好运、开心</p>
-          <p>愿新的一岁</p>
-          <p>无事绊心弦，所念皆如意。</p>
-          <div class="sign">
-            你的儿子<br>刘俊琦<br>2022.11.2
-          </div>
+          <h3 data-card="letter.greeting">To 最爱的妈妈：</h3>
+          <!-- 正文由 CARD.letter.lines 生成 -->
+          <div class="sign" data-card="letter.sign"></div>
           <img class="seal" id="seal" src="assets/seal.png" alt="生日快乐印">
         </div>
       </div>
@@ -523,12 +515,94 @@ body{
 </nav>
 
 <script>
+/* ============================================================================
+ *  想改贺卡内容？只改下面这块 CARD 配置就够了，不用动其它逻辑。
+ *
+ *  · 祝福正文、署名、祝福签、蜡烛数量都在这里
+ *  · 改完保存，刷新页面即可看到效果
+ *  · 说明见 README.md 的「自定义贺卡内容」
+ * ============================================================================ */
+const CARD = {
+  // 封面
+  cover: {
+    to: 'To 最爱的妈妈',       // 封面主标题
+    sub: '生日快乐',            // 封面副标题
+    peek: 'To 最爱的妈妈 ……'    // 信封口露出的一行小字
+  },
+
+  // 信纸（第 4 幕）
+  letter: {
+    greeting: 'To 最爱的妈妈：', // 信开头的称呼
+    lines: [                     // 正文，一行一个字符串，随便增删
+      '祝您生日快乐！',
+      '健康、幸福、好运、开心',
+      '愿新的一岁',
+      '无事绊心弦，所念皆如意。'
+    ],
+    sign: ['你的儿子', '你的名字', '2022.11.2'] // 署名，一行一个（改成自己的）
+  },
+
+  // 祝福签（第 4 幕下方，可随便增删）
+  fortunes: [
+    '愿新的一岁，无事绊心弦，所念皆如意。',
+    '愿你被这世界温柔以待，岁岁常欢愉，年年皆胜意。',
+    '愿岁月不老，笑口常开，好运常来，烦恼全消。',
+    '愿你的每一天，都像今天一样被爱包围、被祝福环绕。',
+    '健康、幸福、好运、开心 —— 今年全都归你。',
+    '愿所有美好都如约而至，所有等待都有回音。'
+  ],
+
+  // 放天灯时，输入框为空时的默认心愿
+  defaultWish: '愿妈妈健康、幸福、好运、开心',
+
+  // 蛋糕上的蜡烛数量
+  candleCount: 3
+};
+
 (() => {
 'use strict';
 
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------------------------------------------------------------
+ *  把 CARD 配置写进页面 —— 改文案只需要改上面的 CARD
+ * ------------------------------------------------------------- */
+function applyCard() {
+  // 封面
+  const cv = CARD.cover;
+  $('[data-card="cover.to"]').textContent = cv.to;
+  $('[data-card="cover.sub"]').textContent = cv.sub;
+  $('[data-card="letter.peek"]').textContent = cv.peek;
+  document.title = cv.sub ? 'UniqueBirthdayGift · ' + cv.sub : 'UniqueBirthdayGift';
+
+  // 信纸：正文行数随配置增删
+  const lt = CARD.letter, letter = $('#letter');
+  const sign = $('[data-card="letter.sign"]', letter);
+  $('[data-card="letter.greeting"]').textContent = lt.greeting;
+  $$('p[data-line]', letter).forEach(p => p.remove());
+  lt.lines.forEach((text, i) => {
+    const p = document.createElement('p');
+    p.textContent = text;
+    p.dataset.line = i;
+    letter.insertBefore(p, sign);
+  });
+  sign.innerHTML = (lt.sign || []).join('<br>');
+
+  // 蜡烛：数量随配置增减
+  const box = $('#candles');
+  box.innerHTML = '';
+  for (let i = 0; i < (CARD.candleCount || 3); i++) {
+    const c = document.createElement('div');
+    c.className = 'candle';
+    c.innerHTML = '<span class="glow"></span><span class="smoke"></span>' +
+                  '<div class="flame" role="button" aria-label="吹灭蜡烛"></div>' +
+                  '<div class="wick"></div><div class="stick"></div>';
+    box.appendChild(c);
+  }
+}
+applyCard();
 
 /* ===================== 音效（Web Audio 合成，无需外部文件） ===================== */
 const Sound = (() => {
@@ -786,7 +860,7 @@ let sent = 0;
 
 $('#flyBtn').addEventListener('click', () => {
   Sound.resume();
-  const text = $('#wishInput').value.trim() || '愿妈妈健康、幸福、好运、开心';
+  const text = $('#wishInput').value.trim() || CARD.defaultWish;
   const node = tpl.cloneNode(true);
   node.style.display = 'block';
   node.removeAttribute('id');
@@ -837,15 +911,9 @@ envelope.addEventListener('keydown', e => {
   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLetter(); }
 });
 
-/* ===================== 抽签 ===================== */
-const fortunes = [
-  '愿新的一岁，无事绊心弦，所念皆如意。',
-  '愿你被这世界温柔以待，岁岁常欢愉，年年皆胜意。',
-  '愿岁月不老，笑口常开，好运常来，烦恼全消。',
-  '愿你的每一天，都像今天一样被爱包围、被祝福环绕。',
-  '健康、幸福、好运、开心 —— 今年全都归你。',
-  '愿所有美好都如约而至，所有等待都有回音。'
-];
+/* ===================== 抽签（文案取自 CARD.fortunes） ===================== */
+const fortunes = (CARD.fortunes && CARD.fortunes.length ? CARD.fortunes : ['生日快乐！']);
+$('#fortuneText').textContent = fortunes[0];
 let fi = 0;
 $('#fortuneBtn').addEventListener('click', () => {
   Sound.resume(); Sound.flip();
