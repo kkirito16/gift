@@ -1,39 +1,865 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>UniqueBirthdayGift</title>
-</head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#204a34">
+<title>UniqueBirthdayGift · 致最爱的妈妈</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
 <style>
-    *{
-        margin: 0;
-        padding: 0;
-    }
+/* ===================== 设计变量 ===================== */
+:root{
+  --green-deep:#204a34;
+  --green:#2f6b47;
+  --green-soft:#5d8058;
+  --green-pale:#8ba787;
+  --cream:#fdf6e3;
+  --cream-2:#f5ead2;
+  --gold:#c9a24a;
+  --gold-soft:#e8c98a;
+  --ink:#3a3226;
+  --red:#be362c;
+  --serif:"仿宋","FangSong","Songti SC","STSong","宋体",Georgia,serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  --ease:cubic-bezier(.22,.68,.32,1);
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:var(--sans);
+  color:var(--cream);
+  background:var(--green-deep);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ===================== 背景层 ===================== */
+/* 原图虚化后作为所有场景的统一底衬，保证视觉连贯 */
+.backdrop{
+  position:fixed; inset:-6%;
+  background:url("background.png") center/cover no-repeat;
+  filter:blur(26px) saturate(.85) brightness(.42);
+  transform:scale(1.08);
+  z-index:0;
+}
+.vignette{
+  position:fixed; inset:0; z-index:1; pointer-events:none;
+  background:radial-gradient(ellipse at 50% 40%,rgba(0,0,0,0) 35%,rgba(12,32,22,.75) 100%);
+}
+#fx{position:fixed; inset:0; z-index:2; pointer-events:none}
+
+/* ===================== 场景容器 ===================== */
+#app{position:relative; z-index:3; height:100%}
+.scene{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:clamp(16px,4vh,40px) 20px;
+  opacity:0; visibility:hidden; pointer-events:none;
+  transform:translateY(26px) scale(.985);
+  transition:opacity .7s var(--ease), transform .7s var(--ease), visibility .7s;
+  overflow-y:auto;
+}
+.scene.active{opacity:1; visibility:visible; pointer-events:auto; transform:none}
+
+.eyebrow{
+  font-family:var(--serif);
+  font-size:clamp(12px,2.6vw,15px);
+  letter-spacing:.42em; text-indent:.42em;
+  color:var(--gold-soft); opacity:.85;
+  margin-bottom:14px; text-align:center;
+}
+.hint{
+  margin-top:18px; font-size:13px; color:rgba(253,246,227,.55);
+  text-align:center; line-height:1.9;
+}
+
+/* ===================== 按钮 ===================== */
+.btn{
+  font-family:var(--serif);
+  font-size:clamp(14px,3.2vw,17px);
+  letter-spacing:.18em; text-indent:.18em;
+  color:var(--green-deep);
+  background:linear-gradient(160deg,var(--gold-soft),var(--gold));
+  border:none; border-radius:999px;
+  padding:13px 34px; cursor:pointer;
+  box-shadow:0 8px 24px rgba(0,0,0,.32), inset 0 1px 0 rgba(255,255,255,.55);
+  transition:transform .28s var(--ease), box-shadow .28s var(--ease), filter .28s;
+}
+.btn:hover{transform:translateY(-3px); box-shadow:0 14px 30px rgba(0,0,0,.4)}
+.btn:active{transform:translateY(0) scale(.97)}
+.btn.ghost{
+  background:transparent; color:var(--gold-soft);
+  border:1px solid rgba(232,201,138,.45); box-shadow:none;
+  padding:11px 26px; font-size:13px;
+}
+.btn.ghost:hover{background:rgba(232,201,138,.12); transform:translateY(-2px)}
+.btn:disabled{filter:grayscale(.6) opacity(.45); cursor:not-allowed; transform:none}
+
+/* ===================== 幕 1：封面 ===================== */
+.cover-frame{
+  position:relative;
+  width:min(74vw,300px);
+  border-radius:18px; overflow:hidden;
+  box-shadow:0 24px 60px rgba(0,0,0,.5), 0 0 0 1px rgba(232,201,138,.28);
+  animation:float 6.5s ease-in-out infinite;
+}
+.cover-frame img{display:block; width:100%; height:auto}
+.cover-frame::after{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(0,0,0,.18));
+}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-.5deg)}50%{transform:translateY(-12px) rotate(.5deg)}}
+
+.cover-title{
+  font-family:var(--serif);
+  font-size:clamp(22px,6vw,34px);
+  letter-spacing:.2em; text-indent:.2em;
+  margin:clamp(18px,4vh,30px) 0 6px;
+  text-align:center; text-shadow:0 4px 18px rgba(0,0,0,.5);
+}
+.cover-sub{
+  font-family:var(--serif);
+  font-size:clamp(12px,3vw,15px);
+  color:rgba(253,246,227,.66);
+  letter-spacing:.3em; text-indent:.3em; text-align:center;
+}
+
+/* 缎带装饰 */
+.ribbon{
+  width:64px; height:3px; margin:16px auto 0;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  animation:shimmer 2.8s ease-in-out infinite;
+}
+@keyframes shimmer{0%,100%{opacity:.35;transform:scaleX(.7)}50%{opacity:1;transform:scaleX(1)}}
+
+/* ===================== 幕 2：蛋糕与蜡烛 ===================== */
+.cake-wrap{position:relative; display:flex; flex-direction:column; align-items:center}
+
+.candles{display:flex; gap:clamp(14px,4vw,26px); margin-bottom:-6px; z-index:3}
+.candle{position:relative; width:12px; height:74px; display:flex; flex-direction:column; align-items:center}
+.stick{
+  width:12px; height:62px; border-radius:6px;
+  background:repeating-linear-gradient(-58deg,#fdf6e3 0 6px,#e8c98a 6px 12px);
+  box-shadow:inset -2px 0 4px rgba(0,0,0,.14);
+}
+.wick{width:2px; height:10px; background:#4a4034; border-radius:1px}
+.flame{
+  position:absolute; top:-26px; left:50%; margin-left:-9px;
+  width:18px; height:30px; cursor:pointer;
+  background:radial-gradient(ellipse at 50% 78%,#fff8d0 0%,#ffcf4d 42%,#ff8b2e 72%,rgba(255,110,40,0) 100%);
+  border-radius:50% 50% 46% 46%;
+  filter:drop-shadow(0 0 12px rgba(255,176,60,.95));
+  animation:flicker 1.5s ease-in-out infinite, sway 3.1s ease-in-out infinite;
+  transform-origin:50% 100%;
+  transition:opacity .45s var(--ease), transform .45s var(--ease);
+}
+@keyframes flicker{0%,100%{transform:scale(1) }50%{transform:scale(.9,.95)}}
+@keyframes sway{0%,100%{rotate:-5deg}50%{rotate:5deg}}
+.flame::after{
+  content:''; position:absolute; left:50%; top:6px; margin-left:-4px;
+  width:8px; height:15px; border-radius:50%;
+  background:radial-gradient(ellipse at 50% 70%,#fffdf2,#ffe89a);
+  opacity:.9;
+}
+.candle.out .flame{opacity:0; transform:scale(.2) translateY(10px); pointer-events:none}
+.smoke{
+  position:absolute; top:-30px; left:50%; margin-left:-6px;
+  width:12px; height:12px; border-radius:50%;
+  background:radial-gradient(circle,rgba(220,220,220,.55),rgba(220,220,220,0) 70%);
+  opacity:0; pointer-events:none;
+}
+.candle.out .smoke{animation:puff 1.9s ease-out forwards}
+@keyframes puff{
+  0%{opacity:.85; transform:translateY(0) scale(.5)}
+  100%{opacity:0; transform:translateY(-60px) scale(2.6)}
+}
+.glow{
+  position:absolute; top:-40px; left:50%; margin-left:-70px;
+  width:140px; height:140px; border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle,rgba(255,186,74,.34),rgba(255,186,74,0) 65%);
+  transition:opacity .6s var(--ease);
+}
+.candle.out .glow{opacity:0}
+
+.layer{
+  position:relative; border-radius:10px 10px 8px 8px;
+  box-shadow:0 6px 16px rgba(0,0,0,.3), inset 0 -8px 14px rgba(0,0,0,.14);
+}
+.layer::before{ /* 糖霜顶 */
+  content:''; position:absolute; left:0; right:0; top:0; height:13px;
+  background:var(--cream); border-radius:8px 8px 3px 3px;
+}
+.layer::after{ /* 糖霜垂坠 */
+  content:''; position:absolute; left:0; right:0; top:11px; height:15px;
+  background:radial-gradient(circle at 50% 0,var(--cream) 45%,rgba(0,0,0,0) 46%) 0 0/20px 15px repeat-x;
+}
+.layer-3{width:130px; height:34px; background:#c2705f; z-index:2}
+.layer-2{width:170px; height:38px; background:#d98a6f; z-index:2}
+.layer-1{width:210px; height:44px; background:#e8a882; z-index:2}
+.plate{
+  width:250px; height:12px; margin-top:2px; border-radius:0 0 14px 14px;
+  background:linear-gradient(180deg,#e6dcc4,#c9b894);
+  box-shadow:0 10px 22px rgba(0,0,0,.35);
+}
+.cake-hint{
+  font-family:var(--serif); font-size:clamp(13px,3.2vw,16px);
+  color:rgba(253,246,227,.8); margin-bottom:22px; text-align:center; line-height:1.9;
+}
+.mic-row{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:24px}
+#micState{
+  margin-top:14px; font-size:12px; letter-spacing:.1em;
+  color:var(--gold-soft); min-height:18px; text-align:center;
+}
+/* 音量条 */
+.blow-meter{
+  width:170px; height:5px; margin:12px auto 0; border-radius:3px;
+  background:rgba(253,246,227,.16); overflow:hidden;
+}
+.blow-meter i{
+  display:block; height:100%; width:0%; border-radius:3px;
+  background:linear-gradient(90deg,var(--gold-soft),#ff9f45);
+  transition:width .09s linear;
+}
+
+/* ===================== 幕 3：许愿天灯 ===================== */
+.wish-box{
+  width:min(92vw,430px);
+  background:rgba(253,246,227,.07);
+  border:1px solid rgba(232,201,138,.3);
+  border-radius:18px; padding:26px 24px;
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  box-shadow:0 20px 50px rgba(0,0,0,.35);
+}
+.wish-box h2{
+  font-family:var(--serif); font-weight:400;
+  font-size:clamp(16px,4vw,20px); letter-spacing:.16em; text-indent:.16em;
+  text-align:center; color:var(--gold-soft); margin-bottom:8px;
+}
+.wish-box p{font-size:12.5px; color:rgba(253,246,227,.55); text-align:center; margin-bottom:16px; line-height:1.8}
+#wishInput{
+  width:100%; min-height:82px; resize:none;
+  font-family:var(--serif); font-size:15px; line-height:1.9;
+  color:var(--ink); background:var(--cream);
+  border:none; border-radius:12px; padding:14px 16px; outline:none;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,.12);
+}
+#wishInput::placeholder{color:rgba(58,50,38,.42)}
+.wish-box .btn{margin-top:16px; width:100%}
+
+.lantern-stage{position:relative; width:min(92vw,430px); height:min(46vh,320px); margin-bottom:8px}
+.lantern{
+  position:absolute; left:50%; bottom:0; margin-left:-62px;
+  width:124px; opacity:0; pointer-events:none;
+}
+.lantern .wish-tag{
+  position:absolute; left:50%; transform:translateX(-50%);
+  bottom:-26px; white-space:nowrap;
+  font-family:var(--serif); font-size:13px; color:var(--gold-soft);
+  text-shadow:0 2px 10px rgba(0,0,0,.7);
+}
+.lantern.fly{animation:flyUp 9s linear forwards}
+@keyframes flyUp{
+  0%{opacity:0; transform:translateY(30px) scale(.85)}
+  12%{opacity:1}
+  100%{opacity:0; transform:translateY(-380px) translateX(46px) scale(.42)}
+}
+.sent-list{
+  margin-top:6px; font-size:12px; color:rgba(253,246,227,.5);
+  text-align:center; line-height:1.9; min-height:22px;
+}
+
+/* ===================== 幕 4：信 ===================== */
+.env-stage{position:relative; width:min(92vw,430px)}
+.letter{
+  position:relative; z-index:1;
+  background:var(--cream); color:var(--ink);
+  border-radius:6px; padding:clamp(22px,5vw,34px);
+  background-image:url("assets/paper.png");
+  box-shadow:0 22px 55px rgba(0,0,0,.48);
+  font-family:var(--serif);
+}
+.letter::before{ /* 信纸横线 */
+  content:''; position:absolute; inset:clamp(22px,5vw,34px);
+  background:repeating-linear-gradient(180deg,transparent 0 33px,rgba(160,142,110,.18) 33px 34px);
+  pointer-events:none; border-radius:3px;
+}
+.letter h3{
+  font-family:var(--serif); font-weight:400;
+  font-size:clamp(17px,4.4vw,22px); letter-spacing:.14em; text-indent:.14em;
+  color:#6a4a2c; margin-bottom:16px;
+}
+.letter p{
+  font-size:clamp(14px,3.4vw,16.5px); line-height:2.05;
+  letter-spacing:.05em; margin-bottom:9px;
+  opacity:0; transform:translateY(12px);
+}
+.letter.reveal p{animation:riseIn .85s var(--ease) forwards}
+@keyframes riseIn{to{opacity:1; transform:none}}
+.sign{margin-top:18px; text-align:right; font-size:14px; color:#7a5a38; line-height:1.9}
+.seal{
+  position:absolute; right:clamp(14px,4vw,26px); bottom:clamp(30px,8vw,52px);
+  width:clamp(76px,20vw,96px); opacity:0; pointer-events:none;
+  transform:scale(2.6) rotate(-18deg); transform-origin:center;
+}
+.seal.stamp{animation:stampDown .7s var(--ease) forwards}
+@keyframes stampDown{
+  0%{opacity:0; transform:scale(2.6) rotate(-18deg)}
+  60%{opacity:1; transform:scale(.94) rotate(-9deg)}
+  80%{transform:scale(1.05) rotate(-9deg)}
+  100%{opacity:.92; transform:scale(1) rotate(-9deg)}
+}
+
+/* 信封 */
+.envelope{
+  position:relative; width:min(92vw,430px); margin:0 auto;
+  cursor:pointer; user-select:none;
+}
+.envelope img.pocket{display:block; width:100%; height:auto; position:relative; z-index:2}
+.flap{
+  position:absolute; left:0; right:0; top:17.4%; height:32%;
+  z-index:3; transform-origin:top center;
+  transition:transform .85s var(--ease);
+  transform-style:preserve-3d;
+}
+.flap::before{
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(170deg,#fdf6e3,#eadfc4);
+  clip-path:polygon(0 0,100% 0,50% 100%);
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.22));
+}
+.envelope.open .flap{transform:rotateX(168deg)}
+.flap .wax{
+  position:absolute; left:50%; top:66%; margin-left:-24px;
+  width:48px; z-index:4; transition:opacity .4s var(--ease);
+}
+.envelope.open .flap .wax{opacity:0}
+.sheet{
+  position:absolute; left:6%; right:6%; top:20%;
+  z-index:1; transform:translateY(30px); opacity:0;
+  transition:transform 1s var(--ease) .35s, opacity .6s var(--ease) .35s;
+}
+.envelope.open .sheet{transform:translateY(-58%)}
+.envelope.open .sheet{opacity:1}
+/* 展开后信封让位给完整信纸 */
+.env-stage{transition:transform .9s var(--ease)}
+.env-stage.opened .envelope{opacity:0; pointer-events:none; position:absolute; inset:0; transition:opacity .5s}
+.env-stage.opened .letter-wrap{
+  opacity:1; transform:none; pointer-events:auto;
+}
+.letter-wrap{
+  opacity:0; transform:translateY(24px); pointer-events:none;
+  transition:opacity .7s var(--ease) .3s, transform .7s var(--ease) .3s;
+}
+.env-stage.opened .envelope{display:none}
+
+/* 抽签 */
+.fortune{
+  margin-top:22px; width:min(92vw,430px);
+  background:rgba(253,246,227,.07);
+  border:1px solid rgba(232,201,138,.28);
+  border-radius:16px; padding:20px; text-align:center;
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+}
+.fortune .label{font-size:11.5px; letter-spacing:.3em; text-indent:.3em; color:rgba(232,201,138,.7)}
+.fortune #fortuneText{
+  font-family:var(--serif); font-size:clamp(14px,3.6vw,17px);
+  line-height:2; margin:12px 0 14px; color:var(--cream);
+  min-height:3.4em; transition:opacity .3s;
+}
+.fortune #fortuneText.flip{animation:flipIn .55s var(--ease)}
+@keyframes flipIn{
+  0%{opacity:0; transform:rotateX(-70deg) translateY(10px)}
+  100%{opacity:1; transform:none}
+}
+
+/* ===================== 导航 ===================== */
+.nav{
+  position:fixed; bottom:clamp(14px,3vh,26px); left:0; right:0; z-index:6;
+  display:flex; align-items:center; justify-content:center; gap:14px;
+}
+.dots{display:flex; gap:9px; padding:8px 14px; border-radius:999px; background:rgba(12,32,22,.42); backdrop-filter:blur(6px)}
+.dot{
+  width:8px; height:8px; border-radius:50%; border:none; cursor:pointer;
+  background:rgba(253,246,227,.28); transition:all .35s var(--ease); padding:0;
+}
+.dot.on{background:var(--gold); width:22px; border-radius:4px}
+.dot.done{background:rgba(232,201,138,.6)}
+.arrow{
+  width:34px; height:34px; border-radius:50%; cursor:pointer;
+  border:1px solid rgba(232,201,138,.35); background:rgba(12,32,22,.42);
+  color:var(--gold-soft); font-size:15px; line-height:1;
+  display:grid; place-items:center; transition:all .3s var(--ease);
+}
+.arrow:hover{background:rgba(232,201,138,.16); transform:scale(1.08)}
+.arrow[disabled]{opacity:.28; cursor:not-allowed}
+
+/* 声音开关 */
+#sound{
+  position:fixed; top:16px; right:16px; z-index:7;
+  width:38px; height:38px; border-radius:50%; cursor:pointer;
+  border:1px solid rgba(232,201,138,.35); background:rgba(12,32,22,.45);
+  color:var(--gold-soft); font-size:16px; display:grid; place-items:center;
+  backdrop-filter:blur(6px); transition:all .3s var(--ease);
+}
+#sound:hover{transform:scale(1.08)}
+#sound.off{opacity:.45}
+
+@media (max-width:380px){
+  .layer-1{width:180px} .layer-2{width:146px} .layer-3{width:112px} .plate{width:216px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.15s !important}
+  .cover-frame{animation:none}
+}
 </style>
+</head>
 <body>
-<img src="./background.png" id="background">
-<h1  class="text">To 最爱的妈妈：<br>祝您生日快乐！<br>健康、幸福、好运、开心<br>愿新的一岁<br>无事绊心弦，所念皆如意。<br>
-<div id="text1">———你的儿子<br>刘俊琦<br>2022.11.2</div></h2>
+
+<div class="backdrop"></div>
+<div class="vignette"></div>
+<canvas id="fx"></canvas>
+<button id="sound" title="音效开关">🔊</button>
+
+<div id="app">
+
+  <!-- ================= 幕 1：封面 ================= -->
+  <section class="scene active" id="s0">
+    <p class="eyebrow">HAPPY BIRTHDAY</p>
+    <div class="cover-frame"><img src="background.png" alt="生日快乐"></div>
+    <h1 class="cover-title">To 最爱的妈妈</h1>
+    <p class="cover-sub">生日快乐</p>
+    <div class="ribbon"></div>
+    <div style="margin-top:26px"><button class="btn" data-go="1">拆 开 礼 物</button></div>
+    <p class="hint">一份为你准备的小惊喜<br>需要一点点声音和互动 🎁</p>
+  </section>
+
+  <!-- ================= 幕 2：蛋糕吹蜡烛 ================= -->
+  <section class="scene" id="s1">
+    <p class="eyebrow">许 一 个 愿</p>
+    <p class="cake-hint">先吹灭蜡烛吧 —— 点击烛火，<br>或者对着麦克风吹一口气</p>
+
+    <div class="cake-wrap">
+      <div class="candles" id="candles">
+        <div class="candle"><span class="glow"></span><span class="smoke"></span><div class="flame" role="button" aria-label="吹灭蜡烛"></div><div class="wick"></div><div class="stick"></div></div>
+        <div class="candle"><span class="glow"></span><span class="smoke"></span><div class="flame" role="button" aria-label="吹灭蜡烛"></div><div class="wick"></div><div class="stick"></div></div>
+        <div class="candle"><span class="glow"></span><span class="smoke"></span><div class="flame" role="button" aria-label="吹灭蜡烛"></div><div class="wick"></div><div class="stick"></div></div>
+      </div>
+      <div class="layer layer-3"></div>
+      <div class="layer layer-2"></div>
+      <div class="layer layer-1"></div>
+      <div class="plate"></div>
+    </div>
+
+    <div class="mic-row">
+      <button class="btn ghost" id="micBtn">🎤 用麦克风吹</button>
+      <button class="btn ghost" id="blowAllBtn">💨 一口气吹灭</button>
+    </div>
+    <div class="blow-meter"><i id="blowBar"></i></div>
+    <p id="micState"></p>
+    <div style="margin-top:10px"><button class="btn" id="toWish" disabled>吹灭蜡烛后解锁</button></div>
+  </section>
+
+  <!-- ================= 幕 3：天灯许愿 ================= -->
+  <section class="scene" id="s2">
+    <p class="eyebrow">放 飞 心 愿</p>
+    <div class="lantern-stage" id="lanternStage">
+      <div class="lantern" id="lanternTpl" style="display:none">
+        <img src="assets/lantern.png" alt="天灯" style="width:124px;display:block">
+      </div>
+    </div>
+    <div class="wish-box">
+      <h2>写给妈妈的一句话</h2>
+      <p>写下来，让它随天灯慢慢升上夜空</p>
+      <textarea id="wishInput" maxlength="60" placeholder="例如：愿妈妈永远健康、开心、被爱包围……"></textarea>
+      <button class="btn" id="flyBtn">放 飞 天 灯</button>
+    </div>
+    <p class="sent-list" id="sentList"></p>
+    <div style="margin-top:14px"><button class="btn" data-go="3">去 拆 信 ✉</button></div>
+  </section>
+
+  <!-- ================= 幕 4：信与祝福 ================= -->
+  <section class="scene" id="s3">
+    <p class="eyebrow">一 封 家 书</p>
+    <div class="env-stage" id="envStage">
+      <div class="envelope" id="envelope" role="button" tabindex="0" aria-label="点击拆开信封">
+        <img class="pocket" src="assets/envelope.png" alt="信封">
+        <div class="sheet">
+          <div class="letter" style="padding:18px 16px">
+            <p style="opacity:1;transform:none;font-size:13px;color:#6a4a2c">To 最爱的妈妈 ……</p>
+          </div>
+        </div>
+        <div class="flap"><img class="wax" src="assets/wax.png" alt="蜡封"></div>
+      </div>
+      <div class="letter-wrap">
+        <div class="letter" id="letter">
+          <h3>To 最爱的妈妈：</h3>
+          <p>祝您生日快乐！</p>
+          <p>健康、幸福、好运、开心</p>
+          <p>愿新的一岁</p>
+          <p>无事绊心弦，所念皆如意。</p>
+          <div class="sign">
+            你的儿子<br>刘俊琦<br>2022.11.2
+          </div>
+          <img class="seal" id="seal" src="assets/seal.png" alt="生日快乐印">
+        </div>
+      </div>
+    </div>
+
+    <div class="fortune">
+      <p class="label">今 日 祝 福 签</p>
+      <p id="fortuneText">愿新的一岁，无事绊心弦，所念皆如意。</p>
+      <button class="btn ghost" id="fortuneBtn">换 一 张</button>
+    </div>
+  </section>
+
+</div>
+
+<nav class="nav">
+  <button class="arrow" id="prev" aria-label="上一幕">‹</button>
+  <div class="dots" id="dots"></div>
+  <button class="arrow" id="next" aria-label="下一幕">›</button>
+</nav>
+
+<script>
+(() => {
+'use strict';
+
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ===================== 音效（Web Audio 合成，无需外部文件） ===================== */
+const Sound = (() => {
+  let ctx = null, on = true;
+  const ac = () => (ctx ||= new (window.AudioContext || window.webkitAudioContext)());
+  function tone(freq, dur = .22, type = 'sine', vol = .12, delay = 0) {
+    if (!on) return;
+    try {
+      const c = ac(), t = c.currentTime + delay;
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(vol, t + .02);
+      g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+      o.connect(g).connect(c.destination);
+      o.start(t); o.stop(t + dur + .02);
+    } catch (e) {}
+  }
+  return {
+    resume: () => { try { ac().resume(); } catch (e) {} },
+    toggle() { on = !on; return on; },
+    get enabled() { return on; },
+    chime: () => [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, .5, 'sine', .1, i * .09)),
+    pop:   () => tone(880, .16, 'triangle', .1),
+    blow:  () => { tone(320, .3, 'sawtooth', .05); tone(180, .4, 'sine', .06, .05); },
+    rise:  () => [392, 523.25, 659.25, 880].forEach((f, i) => tone(f, .45, 'sine', .09, i * .12)),
+    stamp: () => { tone(140, .18, 'square', .07); tone(90, .26, 'sine', .06, .04); },
+    flip:  () => tone(740, .12, 'triangle', .07)
+  };
+})();
+
+const soundBtn = $('#sound');
+soundBtn.addEventListener('click', () => {
+  const on = Sound.toggle();
+  soundBtn.textContent = on ? '🔊' : '🔇';
+  soundBtn.classList.toggle('off', !on);
+  Sound.resume();
+});
+
+/* ===================== 全屏粒子画布：萤火 + 纸屑 ===================== */
+const cv = $('#fx'), cx = cv.getContext('2d');
+const flies = [], confs = [];
+const CONF_COLORS = ['#c9a24a', '#e8c98a', '#fdf6e3', '#8ba787', '#be362c', '#5d8058'];
+let dpr = 1;
+
+function resize() {
+  dpr = Math.min(devicePixelRatio || 1, 2);
+  cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+  cv.style.width = innerWidth + 'px'; cv.style.height = innerHeight + 'px';
+  cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const want = innerWidth < 600 ? 26 : 44;
+  while (flies.length < want) flies.push(newFly());
+  flies.length = want;
+}
+const rnd = (a, b) => a + Math.random() * (b - a);
+function newFly() {
+  return { x: rnd(0, innerWidth), y: rnd(0, innerHeight), r: rnd(1, 2.4),
+           vx: rnd(-.22, .22), vy: rnd(-.30, -.06), a: rnd(.15, .6),
+           ph: rnd(0, Math.PI * 2), sp: rnd(.008, .022) };
+}
+addEventListener('resize', resize); resize();
+
+function burst(x, y, n = 90) {
+  for (let i = 0; i < n; i++) {
+    const a = rnd(0, Math.PI * 2), s = rnd(2.6, 9);
+    confs.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 3,
+                 g: rnd(.12, .26), rot: rnd(0, 6.28), vr: rnd(-.22, .22),
+                 w: rnd(5, 11), h: rnd(3, 8), life: 1,
+                 c: CONF_COLORS[(Math.random() * CONF_COLORS.length) | 0] });
+  }
+}
+
+let t = 0;
+function frame() {
+  t++;
+  cx.clearRect(0, 0, innerWidth, innerHeight);
+
+  // 萤火
+  for (const f of flies) {
+    f.x += f.vx; f.y += f.vy; f.ph += f.sp;
+    if (f.y < -20) f.y = innerHeight + 20;
+    if (f.x < -20) f.x = innerWidth + 20;
+    if (f.x > innerWidth + 20) f.x = -20;
+    const al = f.a * (.45 + .55 * Math.sin(f.ph));
+    cx.globalAlpha = Math.max(0, al);
+    cx.fillStyle = '#f6e39c';
+    cx.shadowBlur = 12; cx.shadowColor = 'rgba(246,227,156,.9)';
+    cx.beginPath(); cx.arc(f.x, f.y, f.r, 0, 6.283); cx.fill();
+  }
+  cx.shadowBlur = 0; cx.globalAlpha = 1;
+
+  // 纸屑
+  for (let i = confs.length - 1; i >= 0; i--) {
+    const p = confs[i];
+    p.vy += p.g; p.vx *= .992; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+    p.life -= .006;
+    if (p.life <= 0 || p.y > innerHeight + 60) { confs.splice(i, 1); continue; }
+    cx.save();
+    cx.globalAlpha = Math.min(1, p.life);
+    cx.translate(p.x, p.y); cx.rotate(p.rot);
+    cx.fillStyle = p.c;
+    cx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * (.4 + .6 * Math.abs(Math.cos(p.rot))));
+    cx.restore();
+  }
+  requestAnimationFrame(frame);
+}
+if (!reduced) frame(); else { cx.clearRect(0, 0, innerWidth, innerHeight); }
+
+/* ===================== 场景切换 ===================== */
+const scenes = $$('.scene');
+let cur = 0;
+const dotsBox = $('#dots');
+scenes.forEach((_, i) => {
+  const b = document.createElement('button');
+  b.className = 'dot'; b.setAttribute('aria-label', '第' + (i + 1) + '幕');
+  b.addEventListener('click', () => go(i));
+  dotsBox.appendChild(b);
+});
+const dots = $$('.dot', dotsBox);
+
+function go(n, skipHash) {
+  n = Math.max(0, Math.min(scenes.length - 1, n));
+  if (n === cur) return;
+  scenes[cur].classList.remove('active');
+  cur = n;
+  const s = scenes[cur];
+  s.classList.add('active');
+  dots.forEach((d, i) => d.classList.toggle('on', i === cur));
+  dots.forEach((d, i) => d.classList.toggle('done', i < cur));
+  $('#prev').disabled = cur === 0;
+  $('#next').disabled = cur === scenes.length - 1;
+  if (!skipHash) history.replaceState(null, '', '#' + cur);
+  onEnter(cur);
+}
+$$('[data-go]').forEach(b => b.addEventListener('click', () => { Sound.resume(); go(+b.dataset.go); }));
+$('#prev').addEventListener('click', () => go(cur - 1));
+$('#next').addEventListener('click', () => go(cur + 1));
+addEventListener('keydown', e => {
+  if (e.target.tagName === 'TEXTAREA') return;
+  if (e.key === 'ArrowRight') go(cur + 1);
+  if (e.key === 'ArrowLeft') go(cur - 1);
+});
+dots[0].classList.add('on'); $('#prev').disabled = true;
+
+/* 支持 #0-#3 深链，方便直接打开某一幕 */
+{
+  const h = parseInt((location.hash || '').replace('#', ''), 10);
+  if (!isNaN(h) && h > 0 && h < scenes.length) setTimeout(() => go(h, true), 60);
+}
+
+function onEnter(i) {
+  if (i === 3 && !letterOpened) { /* 等待用户拆信 */ }
+  if (i === 1) { Sound.resume(); }
+}
+
+/* ===================== 幕 2：蜡烛 ===================== */
+const candleEls = $$('#candles .candle');
+let lit = candleEls.length;
+
+function blowOne(el) {
+  if (!el || el.classList.contains('out')) return false;
+  el.classList.add('out');
+  lit--;
+  Sound.blow();
+  const r = el.getBoundingClientRect();
+  burst(r.left + r.width / 2, r.top - 10, 10);
+  if (lit === 0) allOut();
+  return true;
+}
+
+function allOut() {
+  const r = $('.cake-wrap').getBoundingClientRect();
+  burst(r.left + r.width / 2, r.top + r.height * .3, 150);
+  setTimeout(() => burst(innerWidth * .5, innerHeight * .42, 110), 260);
+  Sound.chime();
+  const b = $('#toWish');
+  b.disabled = false; b.textContent = '去 许 愿 ✦';
+  $('#micState').textContent = '蜡烛全灭啦，愿望一定会实现 🎂';
+  stopMic();
+}
+$('#toWish').addEventListener('click', () => { if (!$('#toWish').disabled) go(2); });
+
+candleEls.forEach(el => {
+  $('.flame', el).addEventListener('click', () => { Sound.resume(); blowOne(el); });
+});
+$('#blowAllBtn').addEventListener('click', () => {
+  Sound.resume();
+  candleEls.forEach((el, i) => setTimeout(() => blowOne(el), i * 260));
+});
+
+/* ---- 麦克风吹气检测 ---- */
+let micOn = false, micStream = null, raf = 0, blowAcc = 0;
+const micBtn = $('#micBtn'), micState = $('#micState'), bar = $('#blowBar');
+
+async function startMic() {
+  Sound.resume();
+  if (!navigator.mediaDevices?.getUserMedia) {
+    micState.textContent = '这个浏览器不支持麦克风，点击烛火就好啦';
+    return;
+  }
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false } });
+  } catch (e) {
+    micState.textContent = '麦克风未授权 —— 直接点烛火也行 ✦';
+    return;
+  }
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const actx = micStream.__actx = new AC();
+  await actx.resume();
+  const src = actx.createMediaStreamSource(micStream);
+  const an = actx.createAnalyser();
+  an.fftSize = 1024;
+  src.connect(an);
+  const buf = new Uint8Array(an.fftSize);
+  micOn = true;
+  micBtn.textContent = '⏹ 停止聆听';
+  micState.textContent = '正在聆听……对着麦克风吹气 💨';
+
+  const loop = () => {
+    if (!micOn) return;
+    an.getByteTimeDomainData(buf);
+    let sum = 0;
+    for (let i = 0; i < buf.length; i++) { const v = (buf[i] - 128) / 128; sum += v * v; }
+    const rms = Math.sqrt(sum / buf.length);
+    const level = Math.min(1, rms * 7);
+    bar.style.width = (level * 100).toFixed(0) + '%';
+
+    // 持续气流累积，避免说话误触发
+    if (level > .34) blowAcc += level * .055; else blowAcc = Math.max(0, blowAcc - .012);
+    if (blowAcc > 1) {
+      blowAcc = 0;
+      const next = candleEls.find(el => !el.classList.contains('out'));
+      if (next) blowOne(next);
+      else { micState.textContent = '全部吹灭啦 🎂'; stopMic(); return; }
+    }
+    raf = requestAnimationFrame(loop);
+  };
+  loop();
+}
+
+function stopMic() {
+  micOn = false;
+  cancelAnimationFrame(raf);
+  micStream?.getTracks().forEach(t => t.stop());
+  try { micStream?.__actx?.close(); } catch (e) {}
+  micStream = null;
+  micBtn.textContent = '🎤 用麦克风吹';
+  bar.style.width = '0%';
+}
+micBtn.addEventListener('click', () => { micOn ? stopMic() : startMic(); });
+
+/* ===================== 幕 3：天灯 ===================== */
+const stage = $('#lanternStage'), tpl = $('#lanternTpl'), sentList = $('#sentList');
+let sent = 0;
+
+$('#flyBtn').addEventListener('click', () => {
+  Sound.resume();
+  const text = $('#wishInput').value.trim() || '愿妈妈健康、幸福、好运、开心';
+  const node = tpl.cloneNode(true);
+  node.style.display = 'block';
+  node.removeAttribute('id');
+  const tag = document.createElement('span');
+  tag.className = 'wish-tag';
+  tag.textContent = text.length > 22 ? text.slice(0, 22) + '…' : text;
+  node.appendChild(tag);
+  node.style.left = (38 + Math.random() * 24) + '%';
+  node.style.opacity = '0';
+  stage.appendChild(node);
+  requestAnimationFrame(() => {
+    node.style.opacity = '';
+    node.classList.add('fly');
+  });
+  Sound.rise();
+  const r = node.getBoundingClientRect();
+  burst(r.left + r.width / 2, r.top + r.height * .6, 24);
+  sent++;
+  sentList.textContent = sent === 1 ? '已放飞 1 盏天灯 ✦ 夜空收到了'
+                                    : `已放飞 ${sent} 盏天灯 ✦ 每一盏妈妈都会收到`;
+  $('#wishInput').value = '';
+  setTimeout(() => node.remove(), 9500);
+});
+
+/* ===================== 幕 4：拆信 ===================== */
+const envStage = $('#envStage'), envelope = $('#envelope'), letter = $('#letter'), seal = $('#seal');
+let letterOpened = false;
+
+function openLetter() {
+  if (letterOpened) return;
+  letterOpened = true;
+  envelope.classList.add('open');
+  Sound.pop();
+  setTimeout(() => {
+    envStage.classList.add('opened');
+    Sound.stamp();
+    letter.classList.add('reveal');
+    $$('#letter p').forEach((p, i) => { p.style.animationDelay = (.25 + i * .32) + 's'; });
+    setTimeout(() => { seal.classList.add('stamp'); Sound.stamp(); }, 1500);
+    setTimeout(() => {
+      const r = letter.getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top + r.height * .5, 70);
+    }, 2200);
+  }, 900);
+}
+envelope.addEventListener('click', () => { Sound.resume(); openLetter(); });
+envelope.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLetter(); }
+});
+
+/* ===================== 抽签 ===================== */
+const fortunes = [
+  '愿新的一岁，无事绊心弦，所念皆如意。',
+  '愿你被这世界温柔以待，岁岁常欢愉，年年皆胜意。',
+  '愿岁月不老，笑口常开，好运常来，烦恼全消。',
+  '愿你的每一天，都像今天一样被爱包围、被祝福环绕。',
+  '健康、幸福、好运、开心 —— 今年全都归你。',
+  '愿所有美好都如约而至，所有等待都有回音。'
+];
+let fi = 0;
+$('#fortuneBtn').addEventListener('click', () => {
+  Sound.resume(); Sound.flip();
+  fi = (fi + 1) % fortunes.length;
+  const el = $('#fortuneText');
+  el.classList.remove('flip');
+  void el.offsetWidth;
+  el.textContent = fortunes[fi];
+  el.classList.add('flip');
+});
+
+/* 首次交互解锁音频 */
+addEventListener('pointerdown', () => Sound.resume(), { once: true });
+})();
+</script>
 </body>
-<css>
-    <style>
-        #background{
-            position: fixed;
-            height: 100%;
-            width: 100%;
-            z-index: -1;
-        }
-        .text{
-            font-family: 仿宋;
-            position: absolute;
-            text-align: left;
-            color: aliceblue;
-            top:50%;
-            left: 45%;
-        }
-        #text1{
-            text-align: right;
-        }
-    </style>
-</css>
 </html>
