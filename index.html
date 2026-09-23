@@ -54,13 +54,19 @@ body{
 .scene{
   position:absolute; inset:0;
   display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
-  padding:clamp(16px,4vh,40px) 20px;
+  align-items:center;
+  /* 底部给导航条留出空间，内容多时可在导航条上方滚动 */
+  padding:clamp(16px,4vh,40px) 20px calc(clamp(10px,2vh,20px) + 64px);
   opacity:0; visibility:hidden; pointer-events:none;
   transform:translateY(26px) scale(.985);
   transition:opacity .7s var(--ease), transform .7s var(--ease), visibility .7s;
   overflow-y:auto;
+  scrollbar-width:none;
 }
+.scene::-webkit-scrollbar{display:none}
+/* 上下弹性弹簧：内容放得下时垂直居中；放不下时弹簧压缩为 0，内容完整可滚动，
+   避免 justify-content:center 在内容超高时把顶部或底部裁掉 */
+.scene::before, .scene::after{content:''; flex:1 1 0; min-height:0}
 .scene.active{opacity:1; visibility:visible; pointer-events:auto; transform:none}
 
 .eyebrow{
@@ -376,7 +382,10 @@ body{
 
 /* ===================== 导航 ===================== */
 .nav{
-  position:fixed; bottom:clamp(14px,3vh,26px); left:0; right:0; z-index:6;
+  position:fixed;
+  /* 用安全区 + 固定高度，避开 iPhone 底部小黑条 */
+  bottom:calc(clamp(10px,2vh,20px) + env(safe-area-inset-bottom, 0px));
+  left:0; right:0; z-index:6;
   display:flex; align-items:center; justify-content:center; gap:14px;
 }
 .dots{display:flex; gap:9px; padding:8px 14px; border-radius:999px; background:rgba(12,32,22,.42); backdrop-filter:blur(6px)}
@@ -397,7 +406,10 @@ body{
 
 /* 声音开关 */
 #sound{
-  position:fixed; top:16px; right:16px; z-index:7;
+  position:fixed;
+  top:calc(14px + env(safe-area-inset-top, 0px));
+  right:calc(14px + env(safe-area-inset-right, 0px));
+  z-index:7;
   width:38px; height:38px; border-radius:50%; cursor:pointer;
   border:1px solid rgba(232,201,138,.35); background:rgba(12,32,22,.45);
   color:var(--gold-soft); font-size:16px; display:grid; place-items:center;
@@ -409,9 +421,49 @@ body{
 @media (max-width:380px){
   .layer-1{width:180px} .layer-2{width:146px} .layer-3{width:112px} .plate{width:216px}
 }
+/* 横屏矮屏：压缩纵向占空间的元素 */
+@media (max-height:480px){
+  .cover-frame{width:min(40vh,190px)}
+  .lantern-stage{height:16vh; min-height:84px}
+  .cover-title{margin:8px 0 3px}
+  .cover-sub{display:none}
+  .cake-hint{margin-bottom:6px}
+  .candle{height:44px}
+  .stick{height:36px}
+  .flame{top:-17px; height:24px}
+  .glow{margin-left:-52px; width:104px; height:104px; top:-30px}
+  .eyebrow{margin-bottom:5px}
+  .hint{margin-top:6px; line-height:1.5}
+  .mic-row{margin-top:8px; gap:8px}
+  .blow-meter{margin-top:6px}
+  .wish-box{padding:12px 14px}
+  .wish-box p{margin-bottom:8px}
+  #wishInput{min-height:44px}
+  .sent-list{min-height:0}
+  .scene{padding-top:10px}
+}
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.15s !important}
   .cover-frame{animation:none}
+}
+/* 小屏（<360px 宽或 <600px 高）：信纸与祝福签紧凑排版，保证一屏放下 */
+@media (max-width:359px), (max-height:599px){
+  .letter{padding:16px 15px}
+  .letter::before{inset:16px 15px; background:repeating-linear-gradient(180deg,transparent 0 27px,rgba(160,142,110,.18) 27px 28px)}
+  .letter h3{font-size:15px; margin-bottom:8px}
+  .letter p{font-size:12.5px; line-height:1.7; margin-bottom:4px}
+  .sign{margin-top:8px; font-size:11px; line-height:1.5}
+  .seal{width:64px; bottom:18px}
+  .fortune{padding:12px; margin-top:12px}
+  .fortune #fortuneText{font-size:12.5px; min-height:0; margin:8px 0 10px; line-height:1.7}
+  .wish-box{padding:16px 14px}
+  .cover-frame{width:min(52vw,190px)}
+  .cover-title{margin:12px 0 4px}
+  .hint{margin-top:10px}
+  .mic-row{margin-top:14px}
+  .candle{height:60px}
+  .stick{height:50px}
+  .layer-1{width:160px} .layer-2{width:128px} .layer-3{width:98px} .plate{width:190px}
 }
 </style>
 </head>
@@ -455,7 +507,7 @@ body{
     </div>
     <div class="blow-meter"><i id="blowBar"></i></div>
     <p id="micState"></p>
-    <div style="margin-top:10px"><button class="btn" id="toWish" disabled>吹灭蜡烛后解锁</button></div>
+    <div style="margin-top:10px"><button class="btn" id="toWish" disabled>去 许 愿 ✦</button></div>
   </section>
 
   <!-- ================= 幕 3：天灯许愿 ================= -->
