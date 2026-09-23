@@ -1,4 +1,4 @@
-# UniqueBirthdayGift
+# Interactive Birthday Card
 
 一份给妈妈的生日礼物：一张可以「吹蜡烛、放天灯、拆信」的互动网页贺卡。
 

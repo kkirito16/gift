@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#204a34">
-<title>UniqueBirthdayGift</title>
+<title>Interactive Birthday Card</title>
 <link rel="icon" type="image/png" href="assets/favicon.png">
 <style>
 /* ===================== 设计变量 ===================== */
@@ -575,7 +575,7 @@ function applyCard() {
   $('[data-card="cover.to"]').textContent = cv.to;
   $('[data-card="cover.sub"]').textContent = cv.sub;
   $('[data-card="letter.peek"]').textContent = cv.peek;
-  document.title = cv.sub ? 'UniqueBirthdayGift · ' + cv.sub : 'UniqueBirthdayGift';
+  document.title = cv.sub ? 'Interactive Birthday Card · ' + cv.sub : 'Interactive Birthday Card';
 
   // 信纸：正文行数随配置增删
   const lt = CARD.letter, letter = $('#letter');
